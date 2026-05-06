@@ -1,0 +1,4 @@
+# Primary Prompt Template
+# TODO: Refine this template for production use.
+Describe the consent event in detail:
+Input: {{input}}
