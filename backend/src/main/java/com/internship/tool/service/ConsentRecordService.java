@@ -17,8 +17,9 @@ public interface ConsentRecordService {
     void                        delete(Long id);
     Page<ConsentRecordResponse> search(String query,
                                        Pageable pageable);
-    Page<ConsentRecordResponse> filterByStatus(ConsentStatus status,
-                                                Pageable pageable);
+    Page<ConsentRecordResponse> filterByStatus(
+                                    ConsentStatus status,
+                                    Pageable pageable);
     StatsResponse               getStats();
     void                        evictAllCaches();
 }
