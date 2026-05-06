@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: consent-audit-trail
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/consent_db?TimeZone=Asia/Kolkata
+    username: consent_user
+    password: consent_pass
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: Asia/Kolkata
+
+  flyway:
+    enabled: false
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+server:
+  port: 8080
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+jwt:
+  secret: bXlTdXBlclNlY3JldEtleUZvckNvbnNlbnRBdWRpdFRyYWlsMjAyNg==
+  expiration-ms: 86400000
+  refresh-expiration-ms: 604800000
+
+ai-service:
+  base-url: http://localhost:5000
+  timeout-seconds: 10
+
+app:
+  admin-email: admin@internship.com
+
+logging:
+  level:
+    com.internship.tool: DEBUG
+    org.springframework.security: INFO
