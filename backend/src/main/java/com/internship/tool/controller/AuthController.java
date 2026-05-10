@@ -87,4 +87,13 @@ public class AuthController {
             "authorities", userDetails.getAuthorities()
         ));
     }
+  // ── TEMP — remove after use ──────────────────────────────
+@GetMapping("/hash")
+public ResponseEntity<String> generateHash(
+        @RequestParam String password) {
+    return ResponseEntity.ok(
+        new org.springframework.security.crypto
+            .bcrypt.BCryptPasswordEncoder()
+            .encode(password));
+}
 }

@@ -7,6 +7,7 @@ import com.internship.tool.service.dto.StatsResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+
 public interface ConsentRecordService {
 
     Page<ConsentRecordResponse> getAll(Pageable pageable);
