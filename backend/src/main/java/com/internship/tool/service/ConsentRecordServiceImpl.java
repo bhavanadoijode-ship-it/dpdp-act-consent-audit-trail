@@ -32,7 +32,7 @@ public class ConsentRecordServiceImpl
 
     private final ConsentRecordRepository repository;
     private final ConsentRecordMapper     mapper;
-    private final EmailService emailService;
+    private final EmailService            emailService;
 
     // ============================================================ READ
 
@@ -59,8 +59,7 @@ public class ConsentRecordServiceImpl
         key   = "#id"
     )
     public ConsentRecordResponse getById(Long id) {
-        log.debug("Cache MISS — fetching record id={} from DB",
-                  id);
+        log.debug("Cache MISS — fetching record id={}", id);
         return mapper.toResponse(findActiveOrThrow(id));
     }
 
@@ -175,12 +174,16 @@ public class ConsentRecordServiceImpl
         mapper.updateEntity(existing, request);
         ConsentRecord saved = repository.save(existing);
 
-        // ── trigger withdrawal confirmation email async ───────
+        // ── trigger withdrawal email async ───────────────────
         if (saved.getStatus() == ConsentStatus.WITHDRAWN) {
-            emailService.sendWithdrawalConfirmationEmail(saved);
+            emailService
+                .sendWithdrawalConfirmationEmail(saved);
+            log.info("Withdrawal email queued for id={}",
+                     saved.getId());
+        }
+
         log.info("Updated ConsentRecord id={} — cache updated",
                  saved.getId());
-        }
         return mapper.toResponse(saved);
     }
 
@@ -220,7 +223,7 @@ public class ConsentRecordServiceImpl
                     allEntries = true)
     })
     public void evictAllCaches() {
-        log.info("All consent caches manually evicted by admin");
+        log.info("All caches manually evicted by admin");
     }
 
     // ============================================================ AI
