@@ -32,6 +32,7 @@ public class ConsentRecordServiceImpl
 
     private final ConsentRecordRepository repository;
     private final ConsentRecordMapper     mapper;
+    private final EmailService emailService;
 
     // ============================================================ READ
 
@@ -173,8 +174,13 @@ public class ConsentRecordServiceImpl
 
         mapper.updateEntity(existing, request);
         ConsentRecord saved = repository.save(existing);
+
+        // ── trigger withdrawal confirmation email async ───────
+        if (saved.getStatus() == ConsentStatus.WITHDRAWN) {
+            emailService.sendWithdrawalConfirmationEmail(saved);
         log.info("Updated ConsentRecord id={} — cache updated",
                  saved.getId());
+        }
         return mapper.toResponse(saved);
     }
 

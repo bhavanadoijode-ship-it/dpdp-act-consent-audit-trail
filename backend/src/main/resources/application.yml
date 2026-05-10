@@ -1,4 +1,16 @@
 spring:
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:test@gmail.com}
+    password: ${MAIL_PASSWORD:testpassword}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
   application:
     name: consent-audit-trail
 
@@ -51,3 +63,4 @@ logging:
   level:
     com.internship.tool: DEBUG
     org.springframework.security: INFO
+    org.springframework.cache: TRACE
