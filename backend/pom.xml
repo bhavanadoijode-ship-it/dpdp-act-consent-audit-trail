@@ -143,6 +143,13 @@
       <scope>test</scope>
     </dependency>
 
+
+<!-- Required by Spring Retry -->
+<dependency>
+  <groupId>org.springframework</groupId>
+  <artifactId>spring-aspects</artifactId>
+</dependency>
+
   </dependencies>
 
   <build>

@@ -33,11 +33,16 @@ import java.util.Map;
 public class ConsentRecordServiceImpl
         implements ConsentRecordService {
 
+    // ============================================================
+    // FIELDS
+    // ============================================================
+
     private final ConsentRecordRepository repository;
     private final ConsentRecordMapper     mapper;
     private final EmailService            emailService;
     private final AuditLogService         auditLogService;
     private final AuditContext            auditContext;
+    private final AiIntegrationService    aiIntegrationService;
 
     // ============================================================
     // READ
@@ -172,8 +177,13 @@ public class ConsentRecordServiceImpl
             auditContext.clientIp()
         );
 
+        // ── trigger AI analysis async ────────────────────────
+        // runs in background thread — does not block response
+        aiIntegrationService.triggerAnalysis(saved);
+
         log.info("Created ConsentRecord id={} "
-               + "— caches evicted", saved.getId());
+               + "— caches evicted, AI triggered",
+                 saved.getId());
         return mapper.toResponse(saved);
     }
 
@@ -232,7 +242,8 @@ public class ConsentRecordServiceImpl
         }
         if (request.getConsentDate() != null
                 && !request.getConsentDate()
-                           .equals(existing.getConsentDate())) {
+                           .equals(existing
+                               .getConsentDate())) {
             changes.put("consentDate", new Object[]{
                 existing.getConsentDate(),
                 request.getConsentDate()
@@ -240,7 +251,8 @@ public class ConsentRecordServiceImpl
         }
         if (request.getExpiryDate() != null
                 && !request.getExpiryDate()
-                           .equals(existing.getExpiryDate())) {
+                           .equals(existing
+                               .getExpiryDate())) {
             changes.put("expiryDate", new Object[]{
                 existing.getExpiryDate(),
                 request.getExpiryDate()
@@ -348,7 +360,8 @@ public class ConsentRecordServiceImpl
     }
 
     // ============================================================
-    // AI
+    // AI — legacy direct attach
+    // (used by AiIntegrationService.attachResults)
     // ============================================================
 
     @Async
@@ -387,7 +400,8 @@ public class ConsentRecordServiceImpl
                     "ConsentRecord", id));
     }
 
-    private void validateDates(ConsentRecordRequest req) {
+    private void validateDates(
+            ConsentRecordRequest req) {
         if (req.getConsentDate() != null
                 && req.getExpiryDate() != null
                 && req.getExpiryDate()

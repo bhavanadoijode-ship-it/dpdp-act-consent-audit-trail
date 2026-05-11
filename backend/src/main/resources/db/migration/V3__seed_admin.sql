@@ -13,7 +13,7 @@ INSERT INTO users (
 VALUES (
     'System Admin',
     'admin@internship.com',
-    '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.',
+    '$2a$10$jGdjVRO.7671n/VqTxpOpO.hXA73qvo3u0rM5PDP2wlqU2jFpQHL2',
     TRUE
 );
 

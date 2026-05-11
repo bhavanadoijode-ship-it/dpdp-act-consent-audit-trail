@@ -1,6 +1,7 @@
 package com.internship.tool.controller;
 
 import com.internship.tool.entity.ConsentStatus;
+import com.internship.tool.service.AiIntegrationService;
 import com.internship.tool.service.ConsentRecordService;
 import com.internship.tool.service.dto.ConsentRecordRequest;
 import com.internship.tool.service.dto.ConsentRecordResponse;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 public class ConsentRecordController {
 
     private final ConsentRecordService service;
+    private final AiIntegrationService aiIntegrationService;
 
     // ── GET ALL ──────────────────────────────────────────────
     @GetMapping
@@ -46,9 +48,11 @@ public class ConsentRecordController {
     })
     public ResponseEntity<Page<ConsentRecordResponse>> getAll(
             @Parameter(description = "Page number (0-based)")
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "0")
+                int page,
             @Parameter(description = "Page size")
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "10")
+                int size,
             @Parameter(description = "Sort field")
             @RequestParam(defaultValue = "createdAt")
                 String sortBy,
@@ -59,8 +63,10 @@ public class ConsentRecordController {
         Sort sort = direction.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-        return ResponseEntity.ok(service.getAll(pageable));
+        Pageable pageable =
+            PageRequest.of(page, size, sort);
+        return ResponseEntity.ok(
+            service.getAll(pageable));
     }
 
     // ── GET BY ID ────────────────────────────────────────────
@@ -93,7 +99,8 @@ public class ConsentRecordController {
                      description = "Unauthorized")
     })
     public ResponseEntity<ConsentRecordResponse> create(
-            @Valid @RequestBody ConsentRecordRequest request) {
+            @Valid @RequestBody
+                ConsentRecordRequest request) {
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(service.create(request));
@@ -115,14 +122,17 @@ public class ConsentRecordController {
     })
     public ResponseEntity<ConsentRecordResponse> update(
             @PathVariable Long id,
-            @Valid @RequestBody ConsentRecordRequest request) {
-        return ResponseEntity.ok(service.update(id, request));
+            @Valid @RequestBody
+                ConsentRecordRequest request) {
+        return ResponseEntity.ok(
+            service.update(id, request));
     }
 
     // ── DELETE (soft) — ADMIN only ───────────────────────────
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Soft-delete a record (ADMIN only)")
+    @Operation(summary =
+        "Soft-delete a record (ADMIN only)")
     @ApiResponses({
         @ApiResponse(responseCode = "204",
                      description = "Deleted"),
@@ -131,7 +141,8 @@ public class ConsentRecordController {
         @ApiResponse(responseCode = "403",
                      description = "Forbidden — ADMIN only")
     })
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
@@ -147,9 +158,11 @@ public class ConsentRecordController {
             @RequestParam(defaultValue = "0")  int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        Pageable pageable = PageRequest.of(page, size,
+        Pageable pageable = PageRequest.of(
+            page, size,
             Sort.by("createdAt").descending());
-        return ResponseEntity.ok(service.search(q, pageable));
+        return ResponseEntity.ok(
+            service.search(q, pageable));
     }
 
     // ── FILTER ───────────────────────────────────────────────
@@ -163,7 +176,8 @@ public class ConsentRecordController {
             @RequestParam(defaultValue = "0")  int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        Pageable pageable = PageRequest.of(page, size,
+        Pageable pageable = PageRequest.of(
+            page, size,
             Sort.by("createdAt").descending());
         return ResponseEntity.ok(
             service.filterByStatus(status, pageable));
@@ -182,11 +196,34 @@ public class ConsentRecordController {
     // ── CACHE EVICT — ADMIN only ─────────────────────────────
     @DeleteMapping("/cache")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Manually evict all caches (ADMIN only)")
+    @Operation(summary =
+        "Manually evict all caches (ADMIN only)")
     @ApiResponse(responseCode = "204",
                  description = "Caches cleared")
     public ResponseEntity<Void> evictCaches() {
         service.evictAllCaches();
         return ResponseEntity.noContent().build();
+    }
+
+    // ── AI RETRY — ADMIN only ────────────────────────────────
+    @PostMapping("/{id}/ai-retry")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary =
+        "Manually trigger AI re-analysis (ADMIN only)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "202",
+                     description = "AI retry queued"),
+        @ApiResponse(responseCode = "404",
+                     description = "Record not found"),
+        @ApiResponse(responseCode = "403",
+                     description = "Forbidden — ADMIN only")
+    })
+    public ResponseEntity<Void> retryAiAnalysis(
+            @PathVariable Long id) {
+        // verify record exists — throws 404 if not found
+        service.getById(id);
+        aiIntegrationService.retryAnalysis(id);
+        // 202 Accepted — async, result not immediate
+        return ResponseEntity.accepted().build();
     }
 }
